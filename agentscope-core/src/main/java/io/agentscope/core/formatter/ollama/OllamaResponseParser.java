@@ -21,6 +21,7 @@ import io.agentscope.core.formatter.ollama.dto.OllamaResponse;
 import io.agentscope.core.formatter.ollama.dto.OllamaToolCall;
 import io.agentscope.core.message.ContentBlock;
 import io.agentscope.core.message.TextBlock;
+import io.agentscope.core.message.ThinkingBlock;
 import io.agentscope.core.message.ToolUseBlock;
 import io.agentscope.core.model.ChatResponse;
 import io.agentscope.core.model.ChatUsage;
@@ -48,13 +49,19 @@ public class OllamaResponseParser {
 
         List<ContentBlock> contentBlocks = new ArrayList<>();
 
-        // 1. Handle Text Content
-        if (msg != null && msg.getContent() != null && !msg.getContent().isEmpty()) {
-            contentBlocks.add(TextBlock.builder().text(msg.getContent()).build());
-        }
-
-        // 2. Handle Tool Calls
         if (msg != null) {
+            // 1. Handle Thinking Content
+            if (msg.getThinking() != null && !msg.getThinking().isEmpty()) {
+                contentBlocks.add(
+                        ThinkingBlock.builder().thinking(msg.getThinking()).build());
+            }
+
+            // 2. Handle Text Content
+            if (msg.getContent() != null && !msg.getContent().isEmpty()) {
+                contentBlocks.add(TextBlock.builder().text(msg.getContent()).build());
+            }
+
+            // 3. Handle Tool Calls
             List<OllamaToolCall> toolCalls = msg.getToolCalls();
             if (toolCalls != null && !toolCalls.isEmpty()) {
                 for (OllamaToolCall toolCall : toolCalls) {
@@ -82,7 +89,7 @@ public class OllamaResponseParser {
             }
         }
 
-        // 3. Map Usage
+        // 4. Map Usage
         int inputTokens = response.getPromptEvalCount() != null ? response.getPromptEvalCount() : 0;
         int outputTokens = response.getEvalCount() != null ? response.getEvalCount() : 0;
         // Ollama durations are in nanoseconds, convert to seconds
@@ -95,7 +102,7 @@ public class OllamaResponseParser {
                         .time(time)
                         .build();
 
-        // 4. Map Metadata
+        // 5. Map Metadata
         Map<String, Object> metadata = new HashMap<>();
         if (response.getModel() != null) metadata.put("model", response.getModel());
         if (response.getCreatedAt() != null) metadata.put("created_at", response.getCreatedAt());

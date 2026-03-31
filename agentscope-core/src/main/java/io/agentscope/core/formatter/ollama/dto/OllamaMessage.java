@@ -51,6 +51,9 @@ public class OllamaMessage {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("thinking")
+    private String thinking;
+
     public OllamaMessage() {}
 
     public OllamaMessage(String role, String content) {
@@ -104,5 +107,13 @@ public class OllamaMessage {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getThinking() {
+        return thinking;
+    }
+
+    public void setThinking(String thinking) {
+        this.thinking = thinking;
     }
 }
