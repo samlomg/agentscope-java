@@ -52,15 +52,12 @@ public class OllamaResponseParser {
         if (msg != null) {
             // 1. Handle Thinking Content
             if (msg.getThinking() != null && !msg.getThinking().isEmpty()) {
-                contentBlocks.add(
-                        ThinkingBlock.builder().thinking(msg.getThinking()).build());
+                contentBlocks.add(ThinkingBlock.builder().thinking(msg.getThinking()).build());
             }
-
             // 2. Handle Text Content
             if (msg.getContent() != null && !msg.getContent().isEmpty()) {
                 contentBlocks.add(TextBlock.builder().text(msg.getContent()).build());
             }
-
             // 3. Handle Tool Calls
             List<OllamaToolCall> toolCalls = msg.getToolCalls();
             if (toolCalls != null && !toolCalls.isEmpty()) {
@@ -73,7 +70,6 @@ public class OllamaResponseParser {
                         // If Ollama doesn't provide ID, we generate a random UUID to satisfy
                         // AgentScope requirement.
                         String callId = UUID.randomUUID().toString();
-
                         // Convert input to JSON string for validation in ToolExecutor
                         // For tools with no parameters, input will be null or an empty map {}
                         String argumentsJson;
@@ -88,20 +84,17 @@ public class OllamaResponseParser {
                 }
             }
         }
-
         // 4. Map Usage
         int inputTokens = response.getPromptEvalCount() != null ? response.getPromptEvalCount() : 0;
         int outputTokens = response.getEvalCount() != null ? response.getEvalCount() : 0;
         // Ollama durations are in nanoseconds, convert to seconds
         double time = response.getTotalDuration() != null ? response.getTotalDuration() / 1e9 : 0.0;
-
         ChatUsage usage =
                 ChatUsage.builder()
                         .inputTokens(inputTokens)
                         .outputTokens(outputTokens)
                         .time(time)
                         .build();
-
         // 5. Map Metadata
         Map<String, Object> metadata = new HashMap<>();
         if (response.getModel() != null) metadata.put("model", response.getModel());
@@ -118,17 +111,14 @@ public class OllamaResponseParser {
         if (response.getEvalDuration() != null)
             metadata.put("eval_duration", response.getEvalDuration());
         if (response.getDone() != null) metadata.put("done", response.getDone());
-
         // Create ChatResponse using Builder
         ChatResponse.Builder builder =
                 ChatResponse.builder().content(contentBlocks).usage(usage).metadata(metadata);
-
         if (response.getDoneReason() != null) {
             builder.finishReason(response.getDoneReason());
         } else if (response.getDone() != null && response.getDone()) {
             builder.finishReason("stop"); // Fallback if doneReason is missing but done is true
         }
-
         return builder.build();
     }
 }
